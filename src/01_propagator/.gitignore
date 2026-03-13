@@ -1,0 +1,7 @@
+__pycache__/
+data/*
+figs/*
+wave/*
+speed_models/*
+media/*
+API_KEY.py

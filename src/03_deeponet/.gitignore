@@ -1,0 +1,7 @@
+model/
+results/
+__pycache__/
+figs/
+data/
+*.dat
+iters/

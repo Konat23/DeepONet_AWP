@@ -1,0 +1,12 @@
+.vscode/
+
+**/*.npy
+**/*.npz
+**/*.pkl
+**/*.ckpt.**
+
+experiments/
+models/
+wavefields/
+
+__pycache__
