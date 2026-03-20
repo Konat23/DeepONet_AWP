@@ -51,8 +51,8 @@ def get_data(path):
 
     data = dde.data.TripleCartesianProd(X_train=X_train, y_train=y_train, X_test=x_val, y_test=y_val)
     
-    y_test = np.load(os.path.join(REF_PATH, "yref_test.npy"))[N_test:N_test+1] 
-    x_test = np.load(os.path.join(REF_PATH, "xref_test.npy"))[N_test:N_test+1] 
+    y_test = np.load(os.path.join(REF_PATH, "yref_test.npy"))[:N_test+1] 
+    x_test = np.load(os.path.join(REF_PATH, "xref_test.npy"))[:N_test+1] 
     
     if y_test.ndim == 3:
         y_test = y_test.reshape(1,-1, 70, 70)
@@ -90,7 +90,7 @@ def get_model_config(path):
     config = json.load(f)
   return config
 
-def safe_predict(model, x, batch_size_0=100, batch_size_1=3920000): #FIXME: Solo para prueba
+def safe_predict(model, x, batch_size_0=100, batch_size_1=3920000): 
     y_pred = []
     
     print(f"[RUN] Using manual batch sizes: x0={batch_size_0}, x1={batch_size_1}")
@@ -154,10 +154,7 @@ def main():
     save_prediction = True
     model_dirs = glob.glob(os.path.join(MODEL_PATH, "*"))
     print(MODEL_PATH)
-    print(model_dirs)
-    # Repetir primera inferencia para quitar tiempo de arranque    
-    #model_dirs = sorted(model_dirs, key=sorting_key) #TODO: generalizar el ordenado
-    #model_dirs = model_dirs[:1]+ model_dirs[:] # (repite la primera) FIXME: Quitar esta linea   
+    print(model_dirs)  
     print(f"[INFO] Experiment: {EXPERIMENT}, Sampler: {SAMPLER}, Normalize by: {NORMALIZE_BY}")
     print(f"[INFO] Found {len(model_dirs)} model directories.")
     
@@ -172,8 +169,13 @@ def main():
         RESULTS_P_PATH = os.path.join(RESULTS_PATH, PARAMETER)
 
         if not os.path.exists(RESULTS_P_PATH):
-          raise ValueError(f"[ERROR] Results path does not exist: {RESULTS_P_PATH}")
-            #os.makedirs(RESULTS_P_PATH)
+          respuesta = input(f"La ruta '{RESULTS_P_PATH}' no existe. ¿Deseas crearla? (s/n): ").strip().lower()
+          
+          if respuesta == "s":
+              os.makedirs(RESULTS_P_PATH, exist_ok=True)
+              print(f"Ruta creada: {RESULTS_P_PATH}")
+          else:
+              raise ValueError(f"[ERROR] Results path does not exist: {RESULTS_P_PATH}")
 
         # Clear TensorFlow session to reset the graph
         tf.keras.backend.clear_session()
@@ -194,7 +196,7 @@ def main():
         print("="*100)
         print("[INFO] Running prediction...")
         
-        y_pred, total_time = safe_predict(model, x_test, batch_size_0=100, batch_size_1=39_200) #FIXME: Solo para prueba
+        y_pred, total_time = safe_predict(model, x_test, batch_size_0=100, batch_size_1=39_200) 
         y_pred = y_pred.reshape(y_test.shape)
         print("[INFO] Prediction done")
         print(f"[TIMING] Total prediction time: {total_time:.2f} seconds")
@@ -203,7 +205,6 @@ def main():
         print(f"[RESULT] y_pred shape: {y_pred.shape}")
         print(f"[RESULT] y_ref shape: {y_test.shape}")
         
-        #continue #TODO: Quitar esta linea, salta el guardado del resultado
         output_path = os.path.join(RESULTS_P_PATH, "ypred_test.npy") #
         
         if save_prediction: #and n != 0:  # Skip saving for the first run
