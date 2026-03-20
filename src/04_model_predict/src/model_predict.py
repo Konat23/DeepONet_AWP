@@ -17,7 +17,6 @@ import tensorflow as tf
 
 
 # ========== PATH CONFIGURATION ==========
-# Se movieron los archivos pesados a otra carpeta
 INPUT_PATH = os.path.join("data")
 OUTPUT_PATH = os.path.join("output")
 #os.path.join("/mnt/compartida/sguerrero_cps/kioto_backup/deeponet_acustic_wave")
@@ -27,6 +26,8 @@ SCALER_DIR = os.path.join(INPUT_PATH,"processed",DATA_NAME, "train_val")
 MODEL_PATH = os.path.join(OUTPUT_PATH,"models", EXPERIMENT)
 RESULTS_PATH = os.path.join(OUTPUT_PATH, "experiments", EXPERIMENT)
 
+# Number of Models to test
+N_test = 500
 # ========== TF CONFIGURATION ==========
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -49,9 +50,9 @@ def get_data(path):
     print(f"[DATA] y_val shape: {y_val.shape}")
 
     data = dde.data.TripleCartesianProd(X_train=X_train, y_train=y_train, X_test=x_val, y_test=y_val)
-    n = 10
-    y_test = np.load(os.path.join(REF_PATH, "yref_test.npy"))[n:n+1] #FIXME: Solo para prueba
-    x_test = np.load(os.path.join(REF_PATH, "xref_test.npy"))[n:n+1] #FIXME: Solo para prueba
+    
+    y_test = np.load(os.path.join(REF_PATH, "yref_test.npy"))[N_test:N_test+1] 
+    x_test = np.load(os.path.join(REF_PATH, "xref_test.npy"))[N_test:N_test+1] 
     
     if y_test.ndim == 3:
         y_test = y_test.reshape(1,-1, 70, 70)

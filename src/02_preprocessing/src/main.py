@@ -351,4 +351,4 @@ def main(sample_type, n_snaps, split_percent = 0.8, wave_num = 100, n_ref = 1, n
     print("\n=== Data Processing Completed Successfully ===")
     
 if __name__ == "__main__":
-    main(sample_type="sobol",n_snaps=36, wave_num=10, n_ref=10, normalize_by="by_all")
+    main(sample_type="sobol",n_snaps=36, wave_num=2000, n_ref=500, normalize_by="by_all")

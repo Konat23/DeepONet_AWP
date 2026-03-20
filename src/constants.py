@@ -1,4 +1,4 @@
-EXPERIMENT = "V4_exp01_alone"
+EXPERIMENT = "V4_exp01_example"
 SAMPLER = "sobol"
 NORMALIZE_BY = "by_all"
 DATA_NAME = "open_fwi"

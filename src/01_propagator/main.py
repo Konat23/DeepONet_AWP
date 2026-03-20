@@ -11,13 +11,13 @@ from src import propagator
 from src.myutils import find_files, timing, expand_edges_speedwave
 from tqdm import tqdm
 
-ID_LIST = [59]
+ID_LIST = [0,1,2,3,59] # selecte models files
 N_MODELs = 500#None #modelos por paquete, None -> todos (500)
 data_set = "open_fwi"
 VELMODEL_PATH = os.path.join("data", "vel_models", data_set) 
 SOURCE_PATH = os.path.join("data","source_functions")
 #output
-WAVEFIELD_PATH = os.path.join("data", "wavefields_b", data_set)
+WAVEFIELD_PATH = os.path.join("data", "wavefields", data_set)
 
 data_type = np.float32
 
@@ -46,6 +46,7 @@ class WavePropagationSimulator:
         d_ricker = (-2 * a * (self.t - self.t0) * np.exp(-a * (self.t - self.t0) ** 2)).T
         ricker = ((1 - 2 * a * (self.t - self.t0) ** 2) * np.exp(-a * (self.t - self.t0) ** 2)).T
         source = ricker
+        os.makedirs(SOURCE_PATH, exist_ok=True)
         np.save(os.path.join(SOURCE_PATH, "ricker.npy"),np.column_stack((self.t,source)))
         return source
         #return np.load(SOURCE_PATH)[:, 1]
