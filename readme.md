@@ -1,4 +1,6 @@
 # DeepONet for Acoustic Wave Propagation
+![Figure_4a_page-0001](https://github.com/user-attachments/assets/33d26ae7-9c45-4bb1-a1b6-bbe4e4806431)
+
 # What is this repository for?
 The objective of this repository is to train a DeepONet neural network to model acoustic wave propagation in variable speed models.
 # How do I get set up?
