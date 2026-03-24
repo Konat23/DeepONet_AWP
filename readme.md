@@ -29,7 +29,7 @@ To use a already trained model (example from a paper):
 - In ``` src/constants ``` replace "V4_exp01_example" with "V4_exp01_paper"
 - Inference (step 7) and Check results (step 8)
 # Who do I talk to?
-Juan Sebastian Guerrero peña  
+Juan Sebastian Guerrero peña <juan2258400@correo.uis.edu.co>
 # Acknowledgments
-Thanks are due to the Ministry of Science, Technology and Innovation and the National Hydrocarbons Agency for funding project 205 of 202.
-<juan2258400@correo.uis.edu.co>
+Thanks are due to the Ministry of Science, Technology and Innovation and the National Hydrocarbons Agency for funding project 205 of 2024.
+
