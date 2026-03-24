@@ -23,7 +23,13 @@ Fix Deepxde bug: go to: ``` ../anaconda3/envs/DeepONet_AWP/lib/python3.9/site-pa
 ``` python src/04_model_predict/src/model_predict.py ```
 8. Check the results:  
 Open and run the Jupyter notebook: ``` src/05_results_review/main_review.ipynb ```
-
+# Quick test (whitout training)
+To use a already trained model (example from a paper): 
+- Follow steps 1, 2, 3, 4 and 5 above.
+- In ``` src/constants ``` replace "V4_exp01_example" with "V4_exp01_paper"
+- Inference (step 7) and Check results (step 8)
 # Who do I talk to?
 Juan Sebastian Guerrero peña  
+# Acknowledgments
+Thanks are due to the Ministry of Science, Technology and Innovation and the National Hydrocarbons Agency for funding project 205 of 202.
 <juan2258400@correo.uis.edu.co>
