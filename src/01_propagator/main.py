@@ -11,9 +11,9 @@ from src import propagator
 from src.myutils import find_files, timing, expand_edges_speedwave
 from tqdm import tqdm
 
-ID_LIST = [0,1,2,3,59] # selecte models files
-N_MODELs = 500#None #modelos por paquete, None -> todos (500)
-data_set = "open_fwi"
+ID_LIST = [0] # selecte models files
+N_MODELs = None#None #modelos por paquete, None -> todos (500)
+data_set = "homogenous"
 VELMODEL_PATH = os.path.join("data", "vel_models", data_set) 
 SOURCE_PATH = os.path.join("data","source_functions")
 #output
@@ -136,6 +136,7 @@ if __name__ == "__main__":
         int(os.path.basename(data_file).split("_")[1].split(".")[0])
         for data_file in data_files
     ]
+    print("Vel Models readed:")
     print(data_n)
 
     # Hyperparameters
