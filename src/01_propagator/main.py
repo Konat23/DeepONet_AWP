@@ -145,7 +145,7 @@ if __name__ == "__main__":
     dh = 10
     frec = 15
     CPMLimit = 20
-    FreeSurfaceLimit = 2
+    FreeSurfaceLimit = 1
     # Source location
     Ix0 = 70 // 2 + CPMLimit
     Iz0 = 70 // 2 + FreeSurfaceLimit
