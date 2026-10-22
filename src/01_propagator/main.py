@@ -11,7 +11,7 @@ from src import propagator
 from src.myutils import find_files, timing, expand_edges_speedwave
 from tqdm import tqdm
 
-ID_LIST = [0] # selecte models files
+ID_LIST = [59] # selecte models files
 N_MODELs = None#None #modelos por paquete, None -> todos (500)
 data_set = "homogenous"
 VELMODEL_PATH = os.path.join("data", "vel_models", data_set) 

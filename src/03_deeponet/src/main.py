@@ -6,7 +6,7 @@ import numpy as np
 import os
 import json
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = str(0)
+os.environ["CUDA_VISIBLE_DEVICES"] = str(4)
 import deepxde as dde
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
@@ -82,7 +82,7 @@ def main():
     activation = "relu"
     initializer = "Glorot normal" 
     dropout = 0
-    layer_size = 800
+    layer_size = 600
     num_layers = 10
     branch_net = [m] + [layer_size] * num_layers
     trunk_net = [dim_x] + [layer_size] * num_layers

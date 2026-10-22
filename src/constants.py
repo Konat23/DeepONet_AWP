@@ -1,4 +1,4 @@
-EXPERIMENT = "V4_exp01_example"
+EXPERIMENT = "V1_homogenous"
 SAMPLER = "sobol"
 NORMALIZE_BY = "by_all"
-DATA_NAME = "open_fwi"
+DATA_NAME = "homogenous"

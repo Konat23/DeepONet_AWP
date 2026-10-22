@@ -6,11 +6,11 @@ output_path = Path(
 )
 output_path.parent.mkdir(parents=True, exist_ok=True)
 
-velocities = np.array(
-    [1500, 2000, 2500, 3000, 3500, 4000, 4500],
-)
+n_models = 500
 
-models = np.array(velocities, dtype=np.float32).reshape(7, 1, 1, 1) * np.ones((7, 1, 70, 70), dtype=np.float32)
+velocities = np.linspace(1500, 4500, n_models).round().astype(int)
+
+models = np.array(velocities, dtype=np.float32).reshape(n_models, 1, 1, 1) * np.ones((n_models, 1, 70, 70), dtype=np.float32)
 
 print(models.shape)            # (7, 1, 70, 70)
 print(models[0, 0].shape)      # (70, 70)
