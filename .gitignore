@@ -4,6 +4,8 @@
 **/*.npz
 **/*.pkl
 **/*.ckpt.**
+**/*.png
+**/*.pdf
 
 experiments/
 models/
