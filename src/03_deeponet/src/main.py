@@ -6,7 +6,7 @@ import numpy as np
 import os
 import json
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = str(4)
+os.environ["CUDA_VISIBLE_DEVICES"] = str(5)
 import deepxde as dde
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
@@ -50,14 +50,14 @@ def run(m, net, optimizer, lr, batch_size, epochs, data_path="data/",model_path=
     model.compile(optimizer, lr=lr, loss="MSE", metrics=[mean_squared_error_outlier])
     ckpt_path = os.path.join(model_path,"model.ckpt")
     checker = dde.callbacks.ModelCheckpoint(
-        ckpt_path, save_better_only=False, period=1000, monitor="test loss",
+        ckpt_path, save_better_only=True, period=1000, monitor="test loss",
     ) 
     losshistory, train_state = train(model, epochs, checker, batch_size=(n_train, batch_size)) 
     dde.utils.save_loss_history(losshistory, loss_history_path + "/losshistory")
     
     ckpt_path = os.path.join(model_path,"model.ckpt-" + str(train_state.best_step)+".ckpt")
     model.restore(ckpt_path, verbose=1)
-    clean_checkpoints(model_path) #save_better_only 
+    #clean_checkpoints(model_path) #save_better_only 
     mse = safe_predict(model, data, X_val, y_val) 
     # Guardar train_state en numpy
     np.savez(os.path.join(result_path, "train_state.npz"),
@@ -74,10 +74,10 @@ def main():
     N_TRAIN = None
     N_POINTS = None
     m = 70*70
-    epochs = 100_000
+    epochs = 200_000
     dim_x = 3
     optimizer = "adam"
-    lr = 0.0001
+    lr = 0.00005
     batch_size = 4096
     activation = "relu"
     initializer = "Glorot normal" 
