@@ -13,7 +13,7 @@ from src.utils import mean_squared_error_outlier, trim_to_65535_cartesian,  quic
 from src.constants import EXPERIMENT, SAMPLER, NORMALIZE_BY, DATA_NAME
 import json
 import glob
-import tensorflow as tf
+#import tensorflow as tf
 
 
 # ========== PATH CONFIGURATION ==========
@@ -29,8 +29,9 @@ RESULTS_PATH = os.path.join(OUTPUT_PATH, "experiments", EXPERIMENT)
 # Number of Models to test
 N_test = 500
 # ========== TF CONFIGURATION ==========
+os.environ["DDE_BACKEND"] = "pytorch"
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "5"
 import deepxde as dde
 
 # ========== DATA LOADING ==========
@@ -38,11 +39,11 @@ def get_data(path):
     train = np.load(os.path.join(path, "train.npz"))
     val = np.load(os.path.join(path,"val.npz"))
 
-    X_train = (train["X_train0"], train["X_train1"])
-    y_train = train["y_train"]
+    X_train = (train["X_train0"].astype(np.float32), train["X_train1"]).astype(np.float32)
+    y_train = train["y_train"].astype(np.float32)
 
-    x_val = (val["X_val0"], val["X_val1"])
-    y_val = val["y_val"]
+    x_val = (val["X_val0"].astype(np.float32), val["X_val1"]).astype(np.float32)
+    y_val = val["y_val"].astype(np.float32)
 
     print(f"[DATA] X_train shapes: {X_train[0].shape}, {X_train[1].shape}")
     print(f"[DATA] y_train shape: {y_train.shape}")
@@ -178,7 +179,7 @@ def main():
               raise ValueError(f"[ERROR] Results path does not exist: {RESULTS_P_PATH}")
 
         # Clear TensorFlow session to reset the graph
-        tf.keras.backend.clear_session()
+        #tf.keras.backend.clear_session() #TODO: borrar esto si no se va usar mas tensorflow
 
         model_name = get_model_name(os.path.join(MODEL_P_PATH, "checkpoint"))
         print("="*100)
