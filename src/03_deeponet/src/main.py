@@ -5,6 +5,7 @@ from __future__ import print_function
 import numpy as np
 import os
 import json
+os.environ["DDE_BACKEND"] = "pytorch"
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = str(5)
 import deepxde as dde
@@ -21,11 +22,11 @@ def train(model, epochs, checker, batch_size=None):
 def run(m, net, optimizer, lr, batch_size, epochs, data_path="data/",model_path="model/",result_path="results/",n_train=None, n_points=None, loss_history_path="results/"):
     # Train    
     d = np.load(os.path.join(data_path,"train.npz"))
-    X_train, y_train = (d["X_train0"][:n_train], d["X_train1"][:n_points]), d["y_train"][:n_train,:n_points]
+    X_train, y_train = (d["X_train0"][:n_train].astype(np.float32), d["X_train1"][:n_points].astype(np.float32)), d["y_train"][:n_train,:n_points].astype(np.float32)
     
     # Validation
     d = np.load(os.path.join(data_path,"val.npz"))
-    X_val, y_val = (d["X_val0"], d["X_val1"][:n_points]), d["y_val"][:,:n_points]
+    X_val, y_val = (d["X_val0"].astype(np.float32), d["X_val1"][:n_points].astype(np.float32)), d["y_val"][:,:n_points].astype(np.float32)
     
     if n_train is None:
         n_train, _ = y_train.shape
@@ -90,8 +91,7 @@ def main():
         branch_net,
         trunk_net,
         activation,
-        initializer,
-        dropout_rate=dropout,
+        initializer
     )
     PARAMETER = "alone" #f"alone_size{layer_size}_layers_{num_layers}"
     SOURCE_DATA_PATH =os.path.join("data")
