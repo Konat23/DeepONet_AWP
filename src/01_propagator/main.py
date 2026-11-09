@@ -12,8 +12,8 @@ from src.myutils import find_files, timing, expand_edges_speedwave
 from tqdm import tqdm
 
 ID_LIST = [59] # selecte models files
-N_MODELs = None#None #modelos por paquete, None -> todos (500)
-data_set = "homogenous"
+N_MODELs = None#None #modelos por paquete, None -> todos 
+data_set = "homogenous100"
 VELMODEL_PATH = os.path.join("data", "vel_models", data_set) 
 SOURCE_PATH = os.path.join("data","source_functions")
 #output
@@ -141,14 +141,14 @@ if __name__ == "__main__":
 
     # Hyperparameters
     dt = 0.001
-    tEnd = 0.8
-    dh = 10
+    tEnd = 0.46
+    dh = 7
     frec = 15
-    CPMLimit = 20
-    FreeSurfaceLimit = 1
+    CPMLimit = 123
+    FreeSurfaceLimit = 123
     # Source location
-    Ix0 = 70 // 2 + CPMLimit
-    Iz0 = 70 // 2 + FreeSurfaceLimit
+    Ix0 = 100 // 2 + CPMLimit
+    Iz0 = 100 // 2 + FreeSurfaceLimit
     simulator = WavePropagationSimulator(
         dt=dt,
         tEnd=tEnd,
