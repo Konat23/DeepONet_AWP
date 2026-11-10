@@ -140,15 +140,20 @@ if __name__ == "__main__":
     print(data_n)
 
     # Hyperparameters
+    
+    nx = 100
+    nz = 100
     dt = 0.001
     tEnd = 0.46
     dh = 7
     frec = 15
-    CPMLimit = 123
-    FreeSurfaceLimit = 123
+    CPMLimit = int(np.ceil(861/dh)) # Estimacion de padding 
+    FreeSurfaceLimit = int(np.ceil(861/dh))
+    
     # Source location
-    Ix0 = 100 // 2 + CPMLimit
-    Iz0 = 100 // 2 + FreeSurfaceLimit
+    Ix0 = nx // 2 + CPMLimit
+    Iz0 = nz // 2 + FreeSurfaceLimit
+    
     simulator = WavePropagationSimulator(
         dt=dt,
         tEnd=tEnd,

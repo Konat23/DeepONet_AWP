@@ -10,7 +10,7 @@ output_path = Path(
 )
 output_path.parent.mkdir(parents=True, exist_ok=True)
 
-n_models = 7
+n_models = 70
 
 velocities = np.linspace(1500, 4500, n_models).round().astype(int)
 print(velocities)
