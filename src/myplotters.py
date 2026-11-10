@@ -210,8 +210,15 @@ def multi_plot_propagation(vel_model, ground_truth, prediction, time_1, time_2, 
     im_pr1 = ax02.imshow(pred1, cmap="seismic", vmin=vmin, vmax=vmax, aspect="equal")
     im_pr2 = ax12.imshow(pred2, cmap="seismic", vmin=vmin, vmax=vmax, aspect="equal")
 
-    im_er1 = ax03.imshow(err1, cmap="Greys", aspect="equal") 
-    im_er2 = ax13.imshow(err2, cmap="Greys", aspect="equal")
+    # Escala común para ambos errores absolutos
+    vmax_error = max(err1.max(), err2.max())
+
+    im_er1 = ax03.imshow(
+        err1, cmap="Greys", vmin=0, vmax=vmax_error, aspect="equal"
+    )
+    im_er2 = ax13.imshow(
+        err2, cmap="Greys", vmin=0, vmax=vmax_error, aspect="equal"
+    )
 
     # -----------------------------
     # Títulos de columnas
