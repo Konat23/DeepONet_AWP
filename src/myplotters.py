@@ -211,7 +211,12 @@ def multi_plot_propagation(vel_model, ground_truth, prediction, time_1, time_2, 
     im_pr2 = ax12.imshow(pred2, cmap="seismic", vmin=vmin, vmax=vmax, aspect="equal")
 
     # Escala común para ambos errores absolutos
-    vmax_error = max(err1.max(), err2.max())
+    print(err1.shape)
+    vmax_error = max(np.nanmax(err1),np.nanmax(err2))
+    print(f"Vmax error {vmax_error}")
+    fila, columna = np.unravel_index(np.nanargmax(err1), err1.shape)
+    print(f"Fila: {fila}, columna: {columna}")
+    print(f"Valor máximo: {err1[fila, columna]}")
 
     im_er1 = ax03.imshow(
         err1, cmap="Greys", vmin=0, vmax=vmax_error, aspect="equal"
