@@ -609,96 +609,125 @@ def plot_velocity_and_traces(
     return fig, (ax_model, ax_traces)
   
 def plot_four_frames(
-  cube,
-  times=(0.05, 0.10, 0.15, 0.20),
-  dt=0.001,
-  dh=10.0,
-  title="Respuesta al impulso directa",
-  output_file=None,
+    cube,
+    times=(0.05, 0.10, 0.15, 0.20),
+    dt=0.001,
+    dh=10.0,
+    title="",
+    output_file=None,
+    cmap_name="seismic",
+    shared_scale=True,
 ):
-  """
-  cube: array con forma (nt, nz, nx).
-  times: cuatro tiempos solicitados, en segundos.
-  dt: intervalo temporal [s].
-  dh: espaciamiento de la malla [m].
-  """
-  cube = np.asarray(cube)
+    """
+    cube: array con forma (nt, nz, nx).
+    times: cuatro tiempos solicitados, en segundos.
+    dt: intervalo temporal [s].
+    dh: espaciamiento de la malla [m].
+    cmap_name: paleta de colores, por ejemplo "seismic", "gray" o "viridis".
+    shared_scale:
+        True: misma escala para los cuatro paneles.
+        False: escala independiente para cada panel.
+    """
+    cube = np.asarray(cube)
 
-  if cube.ndim != 3:
-      raise ValueError("cube debe tener forma (nt, nz, nx).")
-  if dt <= 0 or dh <= 0:
-      raise ValueError("dt y dh deben ser positivos.")
+    if cube.ndim != 3:
+        raise ValueError("cube debe tener forma (nt, nz, nx).")
+    if dt <= 0 or dh <= 0:
+        raise ValueError("dt y dh deben ser positivos.")
 
-  times = np.asarray(times, dtype=float)
-  if times.shape != (4,) or not np.all(np.isfinite(times)):
-      raise ValueError("Debes proporcionar cuatro tiempos finitos.")
+    times = np.asarray(times, dtype=float)
+    if times.shape != (4,) or not np.all(np.isfinite(times)):
+        raise ValueError("Debes proporcionar cuatro tiempos finitos.")
 
-  nt, nz, nx = cube.shape
-  if np.any(times < 0) or np.any(times > (nt - 1) * dt):
-      raise ValueError(
-          f"Los tiempos deben estar entre 0 y {(nt - 1) * dt:.3f} s."
-      )
+    nt, nz, nx = cube.shape
+    if np.any(times < 0) or np.any(times > (nt - 1) * dt):
+        raise ValueError(
+            f"Los tiempos deben estar entre 0 y {(nt - 1) * dt:.3f} s."
+        )
 
-  indices = np.rint(times / dt).astype(int)
-  frames = cube[indices]
+    indices = np.rint(times / dt).astype(int)
+    frames = cube[indices]
 
-  # Escala simétrica compartida, ignorando NaN e infinitos.
-  finite_values = frames[np.isfinite(frames)]
-  if finite_values.size == 0:
-      raise ValueError("Los frames seleccionados no tienen valores finitos.")
+    # Máximo absoluto de cada frame, ignorando NaN e infinitos.
+    maximos = []
+    for index, frame in zip(indices, frames):
+        finite_values = frame[np.isfinite(frame)]
+        if finite_values.size == 0:
+            raise ValueError(
+                f"El frame en t = {index * dt:.3f} s no tiene valores finitos."
+            )
+        maximos.append(float(np.max(np.abs(finite_values))))
 
-  vmax = np.max(np.abs(finite_values))
-  if vmax == 0:
-      vmax = 1.0
+    if shared_scale:
+        # Un único límite para los cuatro paneles.
+        limite = max(maximos) or 1.0
+        limites = [limite] * 4
+    else:
+        # Un límite propio para cada panel.
+        limites = [valor or 1.0 for valor in maximos]
 
-  cmap = plt.get_cmap("seismic").copy()
-  cmap.set_bad("lightgray")
+    cmap = plt.get_cmap(cmap_name).copy()
+    cmap.set_bad("lightgray")
 
-  # Los centros de los píxeles coinciden con x=i*dh, z=j*dh.
-  extent = (
-      -dh / 2,
-      (nx - 0.5) * dh,
-      (nz - 0.5) * dh,
-      -dh / 2,
-  )
+    # Los centros de los píxeles coinciden con x=i*dh, z=j*dh.
+    extent = (
+        -dh / 2,
+        (nx - 0.5) * dh,
+        (nz - 0.5) * dh,
+        -dh / 2,
+    )
 
-  fig, axes = plt.subplots(
-      2, 2,
-      figsize=(10, 9),
-      sharex=True,
-      sharey=True,
-      layout="constrained",
-  )
+    fig, axes = plt.subplots(
+        2, 2,
+        figsize=(10, 9),
+        sharex=True,
+        sharey=True,
+        layout="constrained",
+    )
 
-  for ax, index, frame in zip(axes.flat, indices, frames):
-      im = ax.imshow(
-          np.ma.masked_invalid(frame),
-          cmap=cmap,
-          vmin=-vmax,
-          vmax=vmax,
-          origin="upper",
-          extent=extent,
-          aspect="equal",
-          interpolation="nearest",
-      )
-      ax.set_title(f"t = {index * dt:.3f} s")
-      ax.set_xlabel("x [m]")
-      ax.set_ylabel("Profundidad [m]")
+    for ax, index, frame, limite in zip(
+        axes.flat, indices, frames, limites
+    ):
+        im = ax.imshow(
+            np.ma.masked_invalid(frame),
+            cmap=cmap,
+            vmin=-limite,
+            vmax=limite,
+            origin="upper",
+            extent=extent,
+            aspect="equal",
+            interpolation="nearest",
+        )
 
-  fig.suptitle(title)
-  fig.colorbar(
-      im,
-      ax=axes.ravel().tolist(),
-      label="Amplitud",
-      shrink=0.85,
-      pad=0.03,
-  )
+        ax.set_title(f"t = {index * dt:.3f} s, mean = {np.nanmean(frame):.7f}")
+        ax.set_xlabel("x [m]")
+        ax.set_ylabel("Profundidad [m]")
 
-  if output_file is not None:
-      fig.savefig(output_file, dpi=300, bbox_inches="tight")
+        if not shared_scale:
+            fig.colorbar(
+                im,
+                ax=ax,
+                label="Amplitud",
+                shrink=0.85,
+                pad=0.03,
+            )
 
-  plt.show()
-  return fig, axes
+    fig.suptitle(title)
+
+    if shared_scale:
+        fig.colorbar(
+            im,
+            ax=axes.ravel().tolist(),
+            label="Amplitud",
+            shrink=0.85,
+            pad=0.03,
+        )
+
+    if output_file is not None:
+        fig.savefig(output_file, dpi=300, bbox_inches="tight")
+
+    plt.show()
+    return fig, axes
 
 def _get_color_limit(slice_2d, center_colorbar, max_value, min_value):
     if max_value is not None and min_value is not None:
