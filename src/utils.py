@@ -267,7 +267,10 @@ def change_resolution_speedwave(speedwave, new_shape):
     Returns:
     np.ndarray: The resized speedwave.
     """
-    from skimage.transform import resize
-
-    resized_wave = resize(speedwave, new_shape, mode='reflect', anti_aliasing=True)
-    return resized_wave
+    row_indices = np.floor(
+        np.arange(new_shape[0]) * speedwave.shape[0] / new_shape[0]
+    ).astype(int)
+    col_indices = np.floor(
+        np.arange(new_shape[1]) * speedwave.shape[1] / new_shape[1]
+    ).astype(int)
+    return speedwave[row_indices[:, None], col_indices]
