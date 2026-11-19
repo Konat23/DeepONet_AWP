@@ -16,8 +16,8 @@ from tqdm import tqdm
 sys.path.append( os.path.dirname(os.path.dirname(__file__)))
 from constants import DATA_NAME
 
-ID_LIST = [0,1,2,3,59] # selecte models files
-N_MODELs = None#None #modelos por paquete, None -> todos (500)
+ID_LIST = [0] # selecte models files
+N_MODELs = 100#None #modelos por paquete, None -> todos (500)
 data_set = DATA_NAME
 VELMODEL_PATH = os.path.join("data", "vel_models", data_set) 
 SOURCE_PATH = os.path.join("data","source_functions")
@@ -164,9 +164,12 @@ if __name__ == "__main__":
     Ix0 = np.arange(0, nz, 10) + 5
     Iz0 = np.ones_like(Ix0)
     
+    # Save source locations to npz file
+    np.savez(os.path.join(SOURCE_PATH, "source_locations.npz"), Ix0=Ix0, Iz0=Iz0)
+    
     print(f"Source locations: Ix0={Ix0}, Iz0={Iz0}")
-    Ix0_pad = Ix0 // 2 + CPMLimit
-    Iz0_pad = Iz0 // 2 + FreeSurfaceLimit
+    Ix0_pad = Ix0 + CPMLimit
+    Iz0_pad = Iz0 + FreeSurfaceLimit
     simulator = WavePropagationSimulator(
         dt=dt,
         tEnd=tEnd,
@@ -201,4 +204,6 @@ if __name__ == "__main__":
         print(f"Paquete shape: {paquete.shape}")
         np.save(os.path.join(WAVEFIELD_PATH, f"wavefield_{id:02d}.npy"), paquete)
         print(f"Saved wavefield_{id:02d}.npy")
+        # imprimir tipo
+        print(f"Data type: {paquete.dtype}")
     simulator.save_metadata(WAVEFIELD_PATH)

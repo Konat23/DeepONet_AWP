@@ -797,7 +797,7 @@ def plot_velmodel(sample, n=None, output_folder=None):
       - The plot is displayed with the origin at the upper-left corner and an aspect ratio of "auto".
       - If `output_folder` is provided, the function ensures the folder exists and saves the plot as "speed_model{n}.png".
     """
-
+    from matplotlib.colors import ListedColormap, BoundaryNorm, Normalize
     unique_vals = np.unique(sample)
     num_classes = len(unique_vals)
 
