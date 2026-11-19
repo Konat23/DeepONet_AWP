@@ -7,7 +7,7 @@ import gdown
 import os
 
 INPUT_FILE = os.path.join("data","vel_models","drive_file_list.txt")
-OUTPUT_FOLDER = os.path.join("data","vel_models","open_fwi")
+OUTPUT_FOLDER = os.path.join("data","vel_models","open_fwi_100")
 
 
 def read_drive_list(file_path):

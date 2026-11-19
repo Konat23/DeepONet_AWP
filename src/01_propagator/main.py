@@ -4,6 +4,8 @@
 @author: Sebastian Guerrero
 """
 
+import sys
+
 import numpy as np
 import matplotlib.pyplot as plt
 import os
@@ -11,27 +13,28 @@ from src import propagator
 from src.myutils import find_files, timing, expand_edges_speedwave
 from tqdm import tqdm
 
-ID_LIST = [0] # selecte models files
+sys.path.append( os.path.dirname(os.path.dirname(__file__)))
+from constants import DATA_NAME
+
+ID_LIST = [0,1,2,3,59] # selecte models files
 N_MODELs = None#None #modelos por paquete, None -> todos (500)
-data_set = "homogenous"
+data_set = DATA_NAME
 VELMODEL_PATH = os.path.join("data", "vel_models", data_set) 
 SOURCE_PATH = os.path.join("data","source_functions")
 #output
-WAVEFIELD_PATH = os.path.join("data", "wavefields", data_set)
+WAVEFIELD_PATH = os.path.join("data", "wavefields", data_set+"_multisource")
 
 data_type = np.float32
 
 
 class WavePropagationSimulator:
-    def __init__(self, dt, tEnd, dz, dx, Ix0, Iz0, frec, CPMLimit, FreeSurfaceLimit):
+    def __init__(self, dt, tEnd, dz, dx, frec, CPMLimit, FreeSurfaceLimit):
         self.dt = dt
         self.tEnd = tEnd
         self.Nt = int(tEnd / dt)
         self.t = np.linspace(0, tEnd - dt, self.Nt)
         self.dz = dz
         self.dx = dx
-        self.Ix0 = Ix0
-        self.Iz0 = Iz0
         self.frec = frec
         self.g = self._generate_source()
         self.Pt = None
@@ -55,6 +58,10 @@ class WavePropagationSimulator:
         self.vp = vp
         self.Nz = vp.shape[1]
         self.Nx = vp.shape[0]
+    
+    def set_source_locations(self, Ix0, Iz0):
+        self.Ix0 = Ix0
+        self.Iz0 = Iz0
 
     # @timing
     def compute_wave_propagation(self):
@@ -136,26 +143,35 @@ if __name__ == "__main__":
         int(os.path.basename(data_file).split("_")[1].split(".")[0])
         for data_file in data_files
     ]
+    # print paths 
+    print(f"Velocity model path: {VELMODEL_PATH}")
+    print(f"Wavefield output path: {WAVEFIELD_PATH}")
     print("Vel Models readed:")
     print(data_n)
-
-    # Hyperparameters
+    
+    # Hyperparameters        
+    nx = 100
+    nz = 100
     dt = 0.001
-    tEnd = 0.8
-    dh = 10
+    tEnd = 0.46
+    dh = 7
     frec = 15
-    CPMLimit = 20
-    FreeSurfaceLimit = 1
+    CPMLimit = 2
+    FreeSurfaceLimit = int(np.ceil(861/dh))
+
+    
     # Source location
-    Ix0 = 70 // 2 + CPMLimit
-    Iz0 = 70 // 2 + FreeSurfaceLimit
+    Ix0 = np.arange(0, nz, 10) + 5
+    Iz0 = np.ones_like(Ix0)
+    
+    print(f"Source locations: Ix0={Ix0}, Iz0={Iz0}")
+    Ix0_pad = Ix0 // 2 + CPMLimit
+    Iz0_pad = Iz0 // 2 + FreeSurfaceLimit
     simulator = WavePropagationSimulator(
         dt=dt,
         tEnd=tEnd,
         dz=dh,
         dx=dh,
-        Ix0=Ix0,
-        Iz0=Iz0,
         frec=frec,
         CPMLimit=CPMLimit,
         FreeSurfaceLimit=FreeSurfaceLimit,
@@ -172,10 +188,17 @@ if __name__ == "__main__":
             speed_wave = sw_data[idx, 0, :, :]
             xspeed_wave = expand_edges_speedwave(speed_wave, CPMLimit, FreeSurfaceLimit)
             simulator.set_speed_model(xspeed_wave)
-            simulator.compute_wave_propagation()
-            paquete.append(simulator.P)
-        paquete = np.array(paquete)
-        # print(f"Paquete shape: {paquete.shape}")
+
+            propagaciones_por_fuente = []
+            for ix0, iz0 in zip(Ix0_pad, Iz0_pad):
+                simulator.set_source_locations(ix0, iz0)
+                simulator.compute_wave_propagation()
+                propagaciones_por_fuente.append(simulator.P.copy())
+
+            paquete.append(propagaciones_por_fuente)
+
+        paquete = np.stack(paquete, axis=1)
+        print(f"Paquete shape: {paquete.shape}")
         np.save(os.path.join(WAVEFIELD_PATH, f"wavefield_{id:02d}.npy"), paquete)
-        # print(f"Saved wavefield_{id:02d}.npy")
+        print(f"Saved wavefield_{id:02d}.npy")
     simulator.save_metadata(WAVEFIELD_PATH)

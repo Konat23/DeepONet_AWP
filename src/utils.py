@@ -254,4 +254,20 @@ def save_config(path,activation, initializer, layer_size, num_layers, dropout, o
   }
   
   with open(os.path.join(path,"config.json"), 'w') as archivo:
-    json.dump(config, archivo, indent=2)
+    json.dump(config, archivo, indent=2)   
+    
+def change_resolution_speedwave(speedwave, new_shape):
+    """
+    Changes the resolution of a speedwave by resizing it to a new shape.
+
+    Parameters:
+    speedwave (np.ndarray): The original speedwave data.
+    new_shape (tuple): The desired shape (rows, columns) for the resized speedwave.
+
+    Returns:
+    np.ndarray: The resized speedwave.
+    """
+    from skimage.transform import resize
+
+    resized_wave = resize(speedwave, new_shape, mode='reflect', anti_aliasing=True)
+    return resized_wave
