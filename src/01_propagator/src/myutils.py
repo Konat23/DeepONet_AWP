@@ -83,30 +83,30 @@ def timing(f):
     return wrapper
 
 
-def expand_edges_speedwave(speedwave, n_aumentos, FreeSurfaceLimit):
+def expand_edges_speedwave(speedwave, CPMLimit, FreeSurfaceLimit):
     """
     Expands the edges of a speedwave by replicating the first and last columns and rows.
 
     Parameters:
     speedwave (np.ndarray): The original speedwave data.
-    n_aumentos (int): The number of times to replicate the edges.
+    CPMLimit (int): The number of times to replicate the edges.
+    FreeSurfaceLimit (int): The limit for the free surface. 
 
     Returns:
     np.ndarray: The expanded speedwave.
     """
     expanded_wave = np.hstack(
         (
-            speedwave[:, 0, np.newaxis].repeat(n_aumentos, axis=-1),
+            speedwave[:, 0, np.newaxis].repeat(CPMLimit, axis=-1),
             speedwave,
-            speedwave[:, -1, np.newaxis].repeat(n_aumentos, axis=-1),
+            speedwave[:, -1, np.newaxis].repeat(CPMLimit, axis=-1),
         )
     )
     expanded_wave = np.vstack(
         (
             expanded_wave[0, np.newaxis].repeat(FreeSurfaceLimit, axis=0),
-            # np.full((FreeSurfaceLimit, expanded_wave.shape[1]), 0.0),
             expanded_wave,
-            expanded_wave[-1, np.newaxis].repeat(n_aumentos, axis=0),
+            expanded_wave[-1, np.newaxis].repeat(CPMLimit, axis=0),
         )
     )
     return expanded_wave

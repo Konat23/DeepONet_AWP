@@ -16,7 +16,7 @@ from tqdm import tqdm
 sys.path.append( os.path.dirname(os.path.dirname(__file__)))
 from constants import DATA_NAME
 
-ID_LIST = [0] # selecte models files
+ID_LIST = [0,1,2,3] # selecte models files
 N_MODELs = 100#None #modelos por paquete, None -> todos (500)
 data_set = DATA_NAME
 VELMODEL_PATH = os.path.join("data", "vel_models", data_set) 
@@ -123,15 +123,16 @@ class WavePropagationSimulator:
         plt.savefig("source_time_function.png")
 
 
-def plot_model(n, sample, output_folder="vel_models"):
-    os.makedirs(output_folder, exist_ok=True)
+def plot_model(n, sample, output_folder=None):
+    if output_folder:
+        os.makedirs(output_folder, exist_ok=True)
     plt.figure(figsize=(6, 6))
     plt.imshow(sample, cmap="seismic", origin="upper")  # Change origin to "upper"
     plt.colorbar(label="Velocidad (m/s)")
     plt.title(f"Muestra {n} de model1.npy")
     plt.xlabel("X")
     plt.ylabel("Z")
-    plt.savefig(f"{output_folder}/speed_model{n}.png")
+    #plt.savefig(f"{output_folder}/speed_model{n}.png")
     plt.show()
     # plt.close()
 
@@ -156,8 +157,8 @@ if __name__ == "__main__":
     tEnd = 0.46
     dh = 7
     frec = 15
-    CPMLimit = 2
-    FreeSurfaceLimit = int(np.ceil(861/dh))
+    CPMLimit = int(np.ceil(861/dh))
+    FreeSurfaceLimit = 2
 
     
     # Source location
@@ -189,7 +190,11 @@ if __name__ == "__main__":
         paquete = []
         for idx in tqdm(range(sw_data[:N_MODELs].shape[0]), desc=f"Processing ID {id:02d}"):
             speed_wave = sw_data[idx, 0, :, :]
+            #print(f"Processing model {idx} of ID {id:02d}, speed_wave shape: {speed_wave.shape}")
+            #plot_model(idx, speed_wave)
             xspeed_wave = expand_edges_speedwave(speed_wave, CPMLimit, FreeSurfaceLimit)
+            #print(f"Expanded speed_wave shape: {xspeed_wave.shape}")
+            #plot_model(idx, xspeed_wave)
             simulator.set_speed_model(xspeed_wave)
 
             propagaciones_por_fuente = []
@@ -201,9 +206,9 @@ if __name__ == "__main__":
             paquete.append(propagaciones_por_fuente)
 
         paquete = np.stack(paquete, axis=1)
-        print(f"Paquete shape: {paquete.shape}")
+        tqdm.write(f"Paquete shape: {paquete.shape}")
         np.save(os.path.join(WAVEFIELD_PATH, f"wavefield_{id:02d}.npy"), paquete)
-        print(f"Saved wavefield_{id:02d}.npy")
+        tqdm.write(f"Saved wavefield_{id:02d}.npy")
         # imprimir tipo
-        print(f"Data type: {paquete.dtype}")
+        tqdm.write(f"Data type: {paquete.dtype}")
     simulator.save_metadata(WAVEFIELD_PATH)
