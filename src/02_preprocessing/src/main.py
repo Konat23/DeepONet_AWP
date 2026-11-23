@@ -356,8 +356,8 @@ def main(sample_type, n_snaps, split_percent = 0.8, wave_num = 100, n_ref = 1, n
     wave_loc_train, wave_value_train  = sample_cartesian_data(wavefield_train, sample_type,n_snaps=n_snaps)
     wave_loc_val, wave_value_val  = sample_cartesian_data(wavefield_val, sample_type, n_snaps=n_snaps)
     
-    #save_data(velmodel_train, wave_loc_train, wave_value_train, dataset_type="train", sample_type=sample_type)
-    #save_data(velmodel_val, wave_loc_val, wave_value_val, dataset_type="val", sample_type=sample_type)
+    save_data(velmodel_train, wave_loc_train, wave_value_train, dataset_type="train", sample_type=sample_type)
+    save_data(velmodel_val, wave_loc_val, wave_value_val, dataset_type="val", sample_type=sample_type)
     print("\n=== Data Processing Completed Successfully ===")
     
 if __name__ == "__main__":
