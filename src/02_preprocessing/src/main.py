@@ -12,8 +12,9 @@ from src.utils import timing
 # ========== PATH CONFIGURATION ==========
 print(f"actual path: {os.path.abspath(__file__)}")
 SOURCE_DATA_PATH =os.path.join("data") 
-WAVEFIELD_PATH = os.path.join(SOURCE_DATA_PATH,"wavefields",DATA_NAME)
+WAVEFIELD_PATH = os.path.join(SOURCE_DATA_PATH,"wavefields",DATA_NAME+"_multisource")
 VELMODEL_PATH = os.path.join(SOURCE_DATA_PATH,"vel_models",DATA_NAME)
+MODELS_PER_FILE = 100
 
 output_path = os.path.join(SOURCE_DATA_PATH, "processed",DATA_NAME,"train_val")
 scaler_path = os.path.join(SOURCE_DATA_PATH, "processed",DATA_NAME,"train_val")
@@ -26,15 +27,15 @@ np.random.seed(seed)
 @timing
 def load_wavefield_data(path, wave_num):
     print("\n=== Loading Wavefield Data ===")
-    # Determinar cuantos paquetes de 500 hay que cargar segun wave_num
-    num_files = (wave_num-1) // 500 + 1
+    # Determinar cuantos paquetes de 100 hay que cargar segun wave_num
+    num_files = (wave_num-1) // MODELS_PER_FILE + 1
     for i in range(num_files):
-        # Cargar el paquete de 500
+        # Cargar el paquete de 100
         file_path = os.path.join(path, f"wavefield_{i:02d}.npy")
         if i == 0:
             data = np.load(file_path)
         else:
-            data = np.concatenate((data, np.load(file_path)), axis=0)
+            data = np.concatenate((data, np.load(file_path)), axis=1)
         print(f"Loaded file: {file_path}, current shape: {data.shape}")
     # Carga solo los datos necesarios
     data = data[:wave_num, :, :, :]  # Select the first wave_num
@@ -46,15 +47,15 @@ def load_wavefield_data(path, wave_num):
 @timing
 def load_velmodel_data(path, wave_num):
     print("\n=== Loading Velocity model Data ===")
-    # Determinar cuantos paquetes de 500 hay que cargar segun wave_num
-    num_files = (wave_num-1) // 500 + 1
+    # Determinar cuantos paquetes de 100 hay que cargar segun wave_num
+    num_files = (wave_num-1) // MODELS_PER_FILE + 1
     for i in range(num_files):
-        # Cargar el paquete de 500
+        # Cargar el paquete de 100
         file_path = os.path.join(path, f"model_{i:02d}.npy")
         if i == 0:
-            data = np.load(file_path, mmap_mode=None)
+            data = np.load(file_path, mmap_mode=None)[0:MODELS_PER_FILE]
         else:
-            data = np.concatenate((data, np.load(file_path, mmap_mode=None)), axis=0)
+            data = np.concatenate((data, np.load(file_path, mmap_mode=None)[0:MODELS_PER_FILE]), axis=0)
     # Carga solo los datos necesarios 
     data = data[:wave_num, :, :]  # Select the first wave_num
     print("Velocity model data loaded successfully.")
@@ -128,7 +129,7 @@ def mix_samples_data(velmodel_data, wavefield_data):
     np.random.shuffle(index)
     np.save(os.path.join(output_path,"shuffle_index.npy"), index)
     velmodel_data = velmodel_data[index]
-    wavefield_data = wavefield_data[index]
+    wavefield_data = wavefield_data[:, index]
     print("Data mixed successfully.")
     print(f"Mixed Velocity model data shape: {velmodel_data.shape}")
     print(f"Mixed wavefield data shape: {wavefield_data.shape}")
@@ -157,12 +158,21 @@ def split_data(velmodel_data, wavefield_data, split_percent):
     velmodel_train = velmodel_data[:split_index]
     velmodel_val = velmodel_data[split_index:]
     
-    wavefield_train = wavefield_data[:split_index]
-    wavefield_val = wavefield_data[split_index:]
+    wavefield_train = wavefield_data[:,:split_index]
+    wavefield_val = wavefield_data[:,split_index:]
     
     print("Data split successfully.")
     print(f"Training set size: {velmodel_train.shape[0]}")
     print(f"Validating set size: {velmodel_val.shape[0]}")
+    
+    # print shapes
+    print(f"Training velmodel shape: {velmodel_train.shape}")
+    print(f"Validating velmodel shape: {velmodel_val.shape}")
+    
+    print(f"Training wavefield shape: {wavefield_train.shape}")
+    print(f"Validating wavefield shape: {wavefield_val.shape}")
+    
+    
     
     return (velmodel_train, wavefield_train), (velmodel_val, wavefield_val)
 
@@ -239,7 +249,7 @@ def normalize_cartesian_data(velmodel_train,wave_loc_train, wavefield_train, vel
 def sample_cartesian_data(wavefield_data, sample_type, n_snaps=36):
     # n_snaps: Si no se usa por snaps, se calcula su equivalente
     print(f"\n=== Sampling Cartesian Data: {sample_type} ===")
-    _, nt, nz, nx = wavefield_data.shape
+    ns, nm, nt, nz, nx = wavefield_data.shape
     if sample_type == "random":
         npoints_output = nz*nx*n_snaps # Equivalente a n_snaps snapshots de 70x70
         wave_loc, wave_value = wavefield_samplers.random(wavefield_data, npoints_output)
@@ -346,9 +356,9 @@ def main(sample_type, n_snaps, split_percent = 0.8, wave_num = 100, n_ref = 1, n
     wave_loc_train, wave_value_train  = sample_cartesian_data(wavefield_train, sample_type,n_snaps=n_snaps)
     wave_loc_val, wave_value_val  = sample_cartesian_data(wavefield_val, sample_type, n_snaps=n_snaps)
     
-    save_data(velmodel_train, wave_loc_train, wave_value_train, dataset_type="train", sample_type=sample_type)
-    save_data(velmodel_val, wave_loc_val, wave_value_val, dataset_type="val", sample_type=sample_type)
+    #save_data(velmodel_train, wave_loc_train, wave_value_train, dataset_type="train", sample_type=sample_type)
+    #save_data(velmodel_val, wave_loc_val, wave_value_val, dataset_type="val", sample_type=sample_type)
     print("\n=== Data Processing Completed Successfully ===")
     
 if __name__ == "__main__":
-    main(sample_type="sobol",n_snaps=36, wave_num=2000, n_ref=500, normalize_by="by_all")
+    main(sample_type="sobol",n_snaps=36, wave_num=400, n_ref=0, normalize_by="by_all")

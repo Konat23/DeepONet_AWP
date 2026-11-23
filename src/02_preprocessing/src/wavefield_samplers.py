@@ -218,7 +218,7 @@ def sobol(wavefield_data, npoints_output):
         - value (numpy.ndarray): Array of shape (samples, npoints_output) with the wavefield values at the sampled points.
     """
     print("Selecting points using Sobol sequence...")
-    samples, t_total, x_size, z_size = wavefield_data.shape
+    sources, samples, t_total, x_size, z_size = wavefield_data.shape
     
     # Generate Sobol sequence indices
     sobol_indices = sobol_sequence.sample(npoints_output, 3)
@@ -230,12 +230,12 @@ def sobol(wavefield_data, npoints_output):
     
     # Initialize output arrays
     locations = np.zeros((npoints_output, 3))
-    value = np.zeros((samples, npoints_output))
+    value = np.zeros((sources, samples, npoints_output))
     
     # Fill locations and values
     for i in range(npoints_output):
         locations[i] = [t_indices[i], x_indices[i], z_indices[i]]
-        value[:, i] = wavefield_data[:, t_indices[i], x_indices[i], z_indices[i]]
+        value[:,:, i] = wavefield_data[:,:, t_indices[i], x_indices[i], z_indices[i]]
     
     print("Sobol selection completed.")
     print("Selected locations shape:", locations.shape)
