@@ -11,14 +11,15 @@ from src.constants import DATA_NAME
 from src.utils import timing
 # ========== PATH CONFIGURATION ==========
 print(f"actual path: {os.path.abspath(__file__)}")
-SOURCE_DATA_PATH =os.path.join("data") 
-WAVEFIELD_PATH = os.path.join(SOURCE_DATA_PATH,"wavefields",DATA_NAME+"_multisource")
-VELMODEL_PATH = os.path.join(SOURCE_DATA_PATH,"vel_models",DATA_NAME)
+DATA_PATH =os.path.join("data") 
+WAVEFIELD_PATH = os.path.join(DATA_PATH,"wavefields",DATA_NAME+"_multisource")
+VELMODEL_PATH = os.path.join(DATA_PATH,"vel_models",DATA_NAME)
+SOURCE_PATH = os.path.join(DATA_PATH,"source_functions")
 MODELS_PER_FILE = 100
 
-output_path = os.path.join(SOURCE_DATA_PATH, "processed",DATA_NAME,"train_val")
-scaler_path = os.path.join(SOURCE_DATA_PATH, "processed",DATA_NAME,"train_val")
-reference_path = os.path.join(SOURCE_DATA_PATH, "processed",DATA_NAME,"ref")
+output_path = os.path.join(DATA_PATH, "processed",DATA_NAME,"train_val")
+scaler_path = os.path.join(DATA_PATH, "processed",DATA_NAME,"train_val")
+reference_path = os.path.join(DATA_PATH, "processed",DATA_NAME,"ref")
 
 # ================ SEED  ================
 seed = 42
@@ -60,6 +61,15 @@ def load_velmodel_data(path, wave_num):
     data = data[:wave_num, :, :]  # Select the first wave_num
     print("Velocity model data loaded successfully.")
     print(f"Velocity model data shape: {data.shape}")
+    return data
+
+def load_source_data(path):
+    print("\n=== Loading Source Location Data ===")
+    data = np.load(os.path.join(path, "source_locations.npz"))
+    
+    data = np.hstack((data["Ix0"].reshape(-1, 1),data["Iz0"].reshape(-1, 1)))
+    print("Source data loaded successfully.")
+    print(f"Source data shape: {data.shape}")
     return data
 
 def load_wavefield_data_ref(path, wave_num, npack=59):
@@ -273,18 +283,19 @@ def sample_cartesian_data(wavefield_data, sample_type, n_snaps=36):
     print(f"Sampling completed. Number of points: {npoints_output}")
     return wave_loc, wave_value
 
-def save_data(velmodel, wave_loc, wavefield_value, dataset_type, sample_type):
+def save_data(velmodel, wave_loc, source_loc, wavefield_value, dataset_type, sample_type):
     print(f"\n=== Saving {dataset_type.capitalize()} Data ===")
     if not os.path.exists(os.path.join(output_path, sample_type)):
       os.makedirs(os.path.join(output_path, sample_type))
     print("Saving data...")
     print(f"{dataset_type} shapes")
-    print(f"(X{dataset_type}0), (X{dataset_type}1), (y{dataset_type})")
-    print(f"{velmodel.shape}, {wave_loc.shape}, {wavefield_value.shape}")
+    print(f"(X{dataset_type}0), (X{dataset_type}1), (X{dataset_type}2), (y{dataset_type})")
+    print(f"{velmodel.shape}, {wave_loc.shape}, {source_loc.shape}, {wavefield_value.shape}")
     print(f"Saving train data...")
     kwargs = {
           f"X_{dataset_type}0": velmodel,
           f"X_{dataset_type}1": wave_loc,
+          f"X_{dataset_type}2": source_loc,
           f"y_{dataset_type}": wavefield_value
       }
     np.savez(os.path.join(output_path, sample_type, f"{dataset_type}.npz"), **kwargs)
@@ -341,6 +352,7 @@ def main(sample_type, n_snaps, split_percent = 0.8, wave_num = 100, n_ref = 1, n
     
     velmodel_data = load_velmodel_data(VELMODEL_PATH, wave_num)
     wavefield_data = load_wavefield_data(WAVEFIELD_PATH, wave_num)
+    source_loc_data = load_source_data(SOURCE_PATH)
     
     velmodel_data = flat_velmodel_data(velmodel_data)
     
@@ -356,8 +368,8 @@ def main(sample_type, n_snaps, split_percent = 0.8, wave_num = 100, n_ref = 1, n
     wave_loc_train, wave_value_train  = sample_cartesian_data(wavefield_train, sample_type,n_snaps=n_snaps)
     wave_loc_val, wave_value_val  = sample_cartesian_data(wavefield_val, sample_type, n_snaps=n_snaps)
     
-    save_data(velmodel_train, wave_loc_train, wave_value_train, dataset_type="train", sample_type=sample_type)
-    save_data(velmodel_val, wave_loc_val, wave_value_val, dataset_type="val", sample_type=sample_type)
+    save_data(velmodel_train, wave_loc_train, source_loc_data, wave_value_train, dataset_type="train", sample_type=sample_type)
+    save_data(velmodel_val, wave_loc_val, source_loc_data, wave_value_val, dataset_type="val", sample_type=sample_type)
     print("\n=== Data Processing Completed Successfully ===")
     
 if __name__ == "__main__":
