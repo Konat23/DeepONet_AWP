@@ -76,7 +76,7 @@ def load_wavefield_data_ref(path, wave_num, npack=59):
     print("\n=== Loading Wavefield Reference Data ===")
     file_path = os.path.join(path, f"wavefield_{npack:02d}.npy")
     data = np.load(file_path, mmap_mode='r')
-    data = data[:wave_num, :, :, :]  # Select the first wave_num
+    data = data[:, :wave_num, :, :, :]  # Select the first wave_num
     print("Wavefield reference data loaded successfully.")
     print(f"Wavefield reference data shape: {data.shape}")
     return np.array(data)
@@ -306,8 +306,8 @@ def save_reference_data(wavefield, velmodel, ref=None, path="results"):
     # if path does not exist, create it
     if not os.path.exists(path):
       os.makedirs(path)
-    print("Saving wavield reference data... shape", wavefield[ref].shape)
-    np.save(os.path.join(path,"yref_test.npy"), wavefield[ref])
+    print("Saving wavield reference data... shape", wavefield[:,ref].shape)
+    np.save(os.path.join(path,"yref_test.npy"), wavefield[:,ref])
     print(f"Saving velmodel reference data...shape {velmodel[ref,0].shape}")
     np.save(os.path.join(path,"xref_test.npy"), velmodel[ref,0])
     print("Reference data saved successfully.")
@@ -339,8 +339,7 @@ def main(sample_type, n_snaps, split_percent = 0.8, wave_num = 100, n_ref = 1, n
 
     """
   
-    ######################################
-    assert wave_num > 0, "wave_num must be greater than 0"
+    ######################################   
     
     if n_ref > 0:
       ref_idx = np.arange(0, n_ref)
@@ -349,7 +348,8 @@ def main(sample_type, n_snaps, split_percent = 0.8, wave_num = 100, n_ref = 1, n
       save_reference_data(wavefield_data_ref, velmodel_data_ref ,ref=ref_idx, path=reference_path)
     else:
       print("No reference data to save.")    
-    
+      
+    assert wave_num > 0, "wave_num must be greater than 0"
     velmodel_data = load_velmodel_data(VELMODEL_PATH, wave_num)
     wavefield_data = load_wavefield_data(WAVEFIELD_PATH, wave_num)
     source_loc_data = load_source_data(SOURCE_PATH)
@@ -373,4 +373,4 @@ def main(sample_type, n_snaps, split_percent = 0.8, wave_num = 100, n_ref = 1, n
     print("\n=== Data Processing Completed Successfully ===")
     
 if __name__ == "__main__":
-    main(sample_type="sobol",n_snaps=36, wave_num=400, n_ref=0, normalize_by="by_all")
+    main(sample_type="sobol",n_snaps=36, wave_num=400, n_ref=100, normalize_by="by_all")
