@@ -9,7 +9,8 @@ import numpy as np
 from sklearn.preprocessing import MaxAbsScaler
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
-from src.utils import mean_squared_error_outlier, trim_to_65535_cartesian,  quick_save, trim_to_65535_cartesian_vel, sorting_key
+from src.utils import mean_squared_error_outlier,  quick_save, trim_to_65535_cartesian_vel, sorting_key
+from src.myclasses import FullCartesianProd, MIONetFullCartesianProd
 from src.constants import EXPERIMENT, SAMPLER, NORMALIZE_BY, DATA_NAME
 import json
 import glob
@@ -27,7 +28,7 @@ MODEL_PATH = os.path.join(OUTPUT_PATH,"models", EXPERIMENT)
 RESULTS_PATH = os.path.join(OUTPUT_PATH, "experiments", EXPERIMENT)
 
 # Number of Models to test
-N_test = 500
+N_test = 100
 # ========== TF CONFIGURATION ==========
 os.environ["DDE_BACKEND"] = "pytorch"
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
@@ -50,15 +51,15 @@ def get_data(path):
     print(f"[DATA] X_val shapes: {x_val[0].shape}, {x_val[1].shape}")
     print(f"[DATA] y_val shape: {y_val.shape}")
 
-    data = dde.data.TripleCartesianProd(X_train=X_train, y_train=y_train, X_test=x_val, y_test=y_val)
+    data = FullCartesianProd(X_train=X_train, y_train=y_train, X_test=x_val, y_test=y_val)
     
     y_test = np.load(os.path.join(REF_PATH, "yref_test.npy"))[:N_test+1] 
     x_test = np.load(os.path.join(REF_PATH, "xref_test.npy"))[:N_test+1] 
     
     if y_test.ndim == 3:
-        y_test = y_test.reshape(1,-1, 70, 70)
+        y_test = y_test.reshape(1,-1, 100, 100)
     if x_test.ndim == 2:
-        x_test = x_test.reshape(1,70,70)
+        x_test = x_test.reshape(1,100,100)
 
     print(f"[DATA] y_ref shape: {y_test.shape}")
     print(f"[DATA] x_ref shape: {x_test.shape}")
@@ -75,14 +76,22 @@ def get_model_name(checkpoint_file):
     return None
 
 def get_model_architecture(problem, config):
-    m = 70*70
+    m = 100*100
     dim_x = 3
+    dim_loc = 10
     layer_size = config["layer_sizes"]
     num_layers = config["num_layers"]
-    branch_net = [m] + [layer_size] * num_layers
+    branch_net1 = [dim_loc] + [layer_size//2] * (num_layers//2) + [layer_size]# branch1 is smaller than branch2
+    branch_net2 = [m] + [layer_size] * num_layers + [layer_size]
     trunk_net = [dim_x] + [layer_size] * num_layers
     dim_x = 3
-    net = dde.maps.DeepONetCartesianProd(branch_net, trunk_net, config["activation"],  config["initializer"])
+    net = MIONetFullCartesianProd(
+            branch_net1,
+            branch_net2,
+            trunk_net,
+            config["activation"],
+            config["initializer"]
+        )
     return net
 
 def get_model_config(path):
@@ -117,7 +126,7 @@ def safe_predict(model, x, batch_size_0=100, batch_size_1=3920000):
     print(f"[RUN] Total: {total_combinations:,} combinations in {total_time:.2f} seconds")
     return np.hstack(y_pred), total_time
 
-def prepare_input_data(xref, is_cartesian, shapes=(1000,70,70)):
+def prepare_input_data(xref, is_cartesian, shapes=(1000,100,100)):
     speedwave = xref.reshape(-1, 1)
     t_range, x_range, z_range = np.arange(shapes[0]), np.arange(shapes[1]), np.arange(shapes[2])
     tt, xx, zz = np.meshgrid(t_range, x_range, z_range, indexing='ij')
